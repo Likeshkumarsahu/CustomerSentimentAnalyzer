@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentiment Analysis</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --positive: #22c55e;
+    --negative: #ef4444;
+    --neutral: #64748b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    padding: 24px;
+    background: radial-gradient(circle at top, #1e1b4b, #020617);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: .5;
+    will-change: transform;
+}
+
+.orb-1 {
+    width: 420px; height: 420px;
+    top: -120px; left: -110px;
+    background: #6366f1;
+    animation: drift1 20s ease-in-out infinite;
+}
+
+.orb-2 {
+    width: 380px; height: 380px;
+    bottom: -140px; right: -90px;
+    background: #8b5cf6;
+    animation: drift2 24s ease-in-out infinite;
+}
+
+.orb-3 {
+    width: 300px; height: 300px;
+    top: 45%; left: 55%;
+    background: #0ea5e9;
+    opacity: .35;
+    animation: drift3 18s ease-in-out infinite;
+}
+
+.orb-4 {
+    width: 260px; height: 260px;
+    top: 12%; right: 18%;
+    background: #ec4899;
+    opacity: .28;
+    animation: drift4 22s ease-in-out infinite;
+}
+
+@keyframes drift1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(60px, 50px) scale(1.15); }
+}
+
+@keyframes drift2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-70px, -40px) scale(1.2); }
+}
+
+@keyframes drift3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-50px, 40px) scale(1.1); }
+}
+
+@keyframes drift4 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(40px, -60px) scale(1.25); }
+}
+
+.particle {
+    position: absolute;
+    bottom: -10px;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.55);
+    animation: rise linear infinite;
+}
+
+@keyframes rise {
+    0% { transform: translateY(0); opacity: 0; }
+    15% { opacity: .8; }
+    90% { opacity: .6; }
+    100% { transform: translateY(-105vh); opacity: 0; }
+}
+
+.container {
+    width: 100%;
+    max-width: 650px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 18px;
+    padding: 35px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+    animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 25px;
+}
+
+.samples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.chip {
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, color .2s;
+}
+
+.chip:hover {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+    color: var(--primary-dark);
+}
+
+.chip:focus-visible,
+button:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+textarea {
+    width: 100%;
+    height: 160px;
+    padding: 14px;
+    font-family: inherit;
+    font-size: 15px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    resize: vertical;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+textarea::placeholder { color: #94a3b8; }
+
+textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+}
+
+.meta {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 6px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+button {
+    flex: 1;
+    padding: 14px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s, opacity .2s;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(99,102,241,0.4);
+}
+
+button:active:not(:disabled) { transform: translateY(0); }
+
+button:disabled {
+    opacity: .7;
+    cursor: not-allowed;
+}
+
+.btn-clear {
+    flex: 0 0 auto;
+    width: 52px;
+    padding: 14px 0;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-clear:hover:not(:disabled) {
+    transform: none;
+    background: #e2e8f0;
+    box-shadow: none;
+}
+
+.loader {
+    display: none;
+    margin: 20px auto;
+    width: 28px;
+    height: 28px;
+    border: 3px solid #e5e7eb;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#output {
+    display: none;
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 14px;
+    animation: fadeIn 0.4s ease;
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.confidence-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.confidence-bar {
+    height: 10px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.confidence-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    transition: width .6s ease;
+}
+
+.positive { background: #ecfdf5; color: #065f46; }
+.positive .confidence-fill { background: var(--positive); }
+
+.negative { background: #fef2f2; color: #7f1d1d; }
+.negative .confidence-fill { background: var(--negative); }
+
+.neutral { background: #f1f5f9; color: #334155; }
+.neutral .confidence-fill { background: var(--neutral); }
+
+.error {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+footer {
+    margin-top: 22px;
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+@media (max-width: 520px) {
+    .container { padding: 24px; }
+    h1 { font-size: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+    <span class="orb orb-4"></span>
+</div>
+
+<div class="container">
+    <h1>Sentiment Analysis</h1>
+    <div class="subtitle">DistilBERT • Natural Language Processing</div>
+
+    <div class="samples" id="samples"></div>
+
+    <label for="textInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Text to analyze</label>
+    <textarea id="textInput" maxlength="2000" placeholder="Type your sentence or paragraph here..."></textarea>
+
+    <div class="meta"><span id="charCount">0 / 2000</span></div>
+
+    <div class="actions">
+        <button id="analyzeBtn" onclick="analyzeSentiment()">Analyze Sentiment</button>
+        <button id="clearBtn" class="btn-clear" title="Clear text" aria-label="Clear text" onclick="clearText()">&#10005;</button>
+    </div>
+
+    <div class="loader" id="loader"></div>
+
+    <div id="output" role="status" aria-live="polite"></div>
+
+    <footer>AI-Powered Text Understanding</footer>
+</div>
+
+<script>
+const bg = document.querySelector(".bg");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+if (bg && !reduceMotion) {
+    for (let i = 0; i < 18; i++) {
+        const p = document.createElement("span");
+        const size = (1.5 + Math.random() * 2).toFixed(1);
+        p.className = "particle";
+        p.style.left = Math.random() * 100 + "vw";
+        p.style.width = size + "px";
+        p.style.height = size + "px";
+        p.style.opacity = (0.3 + Math.random() * 0.5).toFixed(2);
+        p.style.animationDuration = (8 + Math.random() * 10).toFixed(1) + "s";
+        p.style.animationDelay = (-Math.random() * 18).toFixed(1) + "s";
+        bg.appendChild(p);
+    }
+}
+
+const textInput = document.getElementById("textInput");
+const output = document.getElementById("output");
+const loader = document.getElementById("loader");
+const btn = document.getElementById("analyzeBtn");
+const clearBtn = document.getElementById("clearBtn");
+const charCount = document.getElementById("charCount");
+
+const SAMPLES = {
+    "Positive": "Absolutely love this product! It exceeded my expectations and arrived a day early.",
+    "Neutral": "The product is okay, not great but not terrible either. It does the job.",
+    "Negative": "Very disappointed. The item broke after two days and the support team was unhelpful."
+};
+
+const samplesEl = document.getElementById("samples");
+Object.keys(SAMPLES).forEach(label => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.textContent = label;
+    chip.onclick = () => {
+        textInput.value = SAMPLES[label];
+        textInput.focus();
+        updateCount();
+    };
+    samplesEl.appendChild(chip);
+});
+
+function updateCount() {
+    charCount.textContent = `${textInput.value.length} / 2000`;
+}
+
+textInput.addEventListener("input", updateCount);
+textInput.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        analyzeSentiment();
+    }
+});
+
+function clearText() {
+    if (!textInput.value || !confirm("Clear the current text?")) return;
+    textInput.value = "";
+    updateCount();
+    output.style.display = "none";
+    output.className = "";
+    textInput.focus();
+}
+
+async function analyzeSentiment() {
+    const text = textInput.value.trim();
+
+    output.style.display = "none";
+    output.className = "";
+
+    if (!text) {
+        output.className = "error";
+        output.innerHTML = "Please enter some text.";
+        output.style.display = "block";
+        return;
+    }
+
+    loader.style.display = "block";
+    btn.disabled = true;
+    clearBtn.disabled = true;
+    const originalLabel = btn.textContent;
+    btn.textContent = "Analyzing...";
+
+    try {
+        const res = await fetch("/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+            output.className = "error";
+            output.innerHTML = data.error || "Something went wrong. Please try again.";
+            output.style.display = "block";
+            return;
+        }
+
+        let cls = "neutral";
+        if (data.sentiment.toLowerCase() === "positive") cls = "positive";
+        if (data.sentiment.toLowerCase() === "negative") cls = "negative";
+
+        output.className = cls;
+        output.innerHTML = `
+            <div class="result-header"><span class="dot"></span>Sentiment: ${data.sentiment}</div>
+            <div class="confidence-row"><span>Confidence</span><strong>${(data.confidence * 100).toFixed(2)}%</strong></div>
+            <div class="confidence-bar">
+                <div class="confidence-fill" style="width:${data.confidence * 100}%"></div>
+            </div>
+        `;
+        output.style.display = "block";
+
+    } catch {
+        output.className = "error";
+        output.innerHTML = "Server error. Please try again.";
+        output.style.display = "block";
+    } finally {
+        loader.style.display = "none";
+        btn.disabled = false;
+        clearBtn.disabled = false;
+        btn.textContent = originalLabel;
+    }
+}
+</script>
+
+</body>
+</html>

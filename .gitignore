@@ -1,0 +1,68 @@
+# ---------------------------------------
+# Virtual environments
+# ---------------------------------------
+venv/
+env/
+.venv/
+custSenti/
+ENV/
+
+# ---------------------------------------
+# Python
+# ---------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+.installed.cfg
+
+# ---------------------------------------
+# Jupyter
+# ---------------------------------------
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ---------------------------------------
+# Model / training artifacts
+# ---------------------------------------
+results/
+*.safetensors
+*.bin
+*.pt
+*.h5
+*.ckpt
+checkpoint-*/
+
+# ---------------------------------------
+# Datasets (large)
+# ---------------------------------------
+Reviews.csv
+final_customer_sentiment_dataset.csv
+*.csv.lock
+
+# ---------------------------------------
+# OS / editor
+# ---------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*Zone.Identifier
+.vscode/
+.idea/
+*.swp
+
+# ---------------------------------------
+# Environment / secrets
+# ---------------------------------------
+.env
+.env.*
+*.local
+
+# ---------------------------------------
+# Logs
+# ---------------------------------------
+*.log
+logs/
